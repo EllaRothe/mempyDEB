@@ -9,7 +9,6 @@ mempyDEB.egg-info/requires.txt
 mempyDEB.egg-info/top_level.txt
 mempyDEB/DEBIBM/__init__.py
 mempyDEB/DEBIBM/defaultparams.py
-mempyDEB/DEBIBM/guten morgen.py
 mempyDEB/DEBIBM/model.py
 mempyDEB/DEBIBM/simulators.py
 mempyDEB/DEBODE/__init__.py

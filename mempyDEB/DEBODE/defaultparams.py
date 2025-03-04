@@ -11,7 +11,7 @@ Params = namedtuple("Params", "glb spc")
 defaultparams_DEBBase = Params(
     { # global parameters
         # Simulation parameters
-        'tspan' : (0,23), # simulated time span
+        'tspan' : (0,230), # simulated time span
         'a_int' : 2, # initial age (including embryonic development); the column `t` in the simulation output starts to count time at this age
 
         # Environmental parameters
