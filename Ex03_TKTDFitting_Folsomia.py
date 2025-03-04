@@ -16,7 +16,6 @@ from Ex03_DEBfitting_Folsomia import collembola_length_to_weight
 
 EMB_DEV_TIME = 2 # geschätzte embryonalentwicklungszeit (realistisch für Daphnia)
 S_MAX_REFERENCE = 388.4 # maximale Strukturelle Masse, die durch die Anfangswerte impliziert ist
-#EXPOSURES = [0, 2, 10, 40, 100, 150, 200, 250]
 EXPOSURES = [0,100,500,1500,2000]
 
 def calc_S_max(spc: dict):
@@ -27,25 +26,13 @@ def calc_S_max(spc: dict):
     return np.power((spc['kappa'] * spc['Idot_max_rel'] * spc['eta_IA_0']) / spc['k_M_0'], 3)
 
 
-def calc_y_R(R, R_ref):
-    """
-    Berechnung der relative response y_R für Reproduktion.
-    """
-
-    if R_ref[0] == 0:
-        y_R = 1.
-    else:
-        y_R =  R[0] / R_ref[0]
-    
-    return y_R 
-
 def load_data():
     """
-    Einlesen der Kontrolldaten für D. magna.
+    Einlesen der Kontrolldaten für Folsomia
     """
     
-    data = pd.read_csv('../../data/folsomia_cadmium/folsomia_temperature_cadmium_growth_tidy.csv', header = 5)
-    data = data.loc[lambda df : df.T_cels == 20]
+    data = pd.read_csv('folsomia_temperature_cadmium_growth_tidy.csv', header = 5)
+    data = data[data['T_cels']==15]
     data = data.assign(S = collembola_length_to_weight(data.length_mm))
     data.rename(columns = {'C_F':'C_W'}, inplace = True)
 
@@ -57,7 +44,6 @@ def plot_data(data):
     Gibt ein `fig, ax`-Tuple zurück.
     """
 
-    # plot matrix mit 8 spalten für konzentrationen und 2 zeilen für wachstum und reproduktion
     fig, ax = plt.subplots(ncols = 5, nrows = 2, figsize = (20,8), sharey = True)
 
     for (i,C_W) in enumerate(data.C_W.unique()):
@@ -86,7 +72,6 @@ def plot_sim(ax, sim):
         df = sim.loc[lambda df : df.C_W == C_W]
 
         sns.lineplot(df, x = 't_day', y = 'S', ax = ax[0,i])
-        sns.lineplot(df, x = 't_day', y = 'R', ax = ax[1,i])
 
     return ax
 
@@ -124,7 +109,6 @@ def define_simulator(f: ModelFit):
                 prediction.loc[prediction['C_W']==0], on = ['t_day'], suffixes = ['', '_ref']).groupby(['t_day', 'C_W']).apply(
                     lambda gb : gb.assign(
                         y_S = lambda gb : gb.S / gb.S_ref,
-                      #  y_R = lambda gb : calc_y_R(np.array(gb.cum_repro), np.array(gb.cum_repro_ref))
                     ))
             
             return prediction.drop(['C_W', 't_day'], axis = 1).reset_index()
@@ -171,9 +155,7 @@ def define_defaultparams():
 
     fitted_params =  {
         'Idot_max_rel': np.float64(4.5482062001716725),
-        #'kappa': np.float64(0.5265137793254286), 
-        'eta_AS_0': np.float64(0.4064455981275471),
-        #'S_p': np.float64(121.62673237331643)
+        'eta_AS_0': np.float64(0.4064455981275471)
         }
     
     spc.update(fitted_params)
@@ -200,9 +182,8 @@ def define_loss(constants = None):
         
         # Berechnung der Loss-Funktion
         loss_S = logMSE(eval_df.S_predicted, eval_df.S_observed)
-        #loss_R = logMSE(eval_df.y_R_predicted, eval_df.y_R_observed)
         
-        return loss_S #+ loss_R # nur die komplette Loss muss zurückgegeben werden 
+        return loss_S # nur die komplette Loss muss zurückgegeben werden 
     
     return loss
 
@@ -215,15 +196,13 @@ def setup_modelfit(pmoa = 'G'):
     # Konstanten die während des Fittings genutzt werden
     
     constants = {
-        'scale_factor_S' : np.max(f.data.loc[lambda df : df['C_W']==0].S),
-        #'scale_factor_R' : np.max(f.data.loc[lambda df : df['C_W']==0].cum_repro_mean)
+        'scale_factor_S' : np.max(f.data.loc[lambda df : df['C_W']==0].S)
     }
     
     # Skalierung der Daten
 
     f.data = f.data.assign( 
-        S_scaled = lambda df : df.S / constants['scale_factor_S'], # Berechnung der skalierten Struktur
-     #   cum_repro_scaled = lambda df : df.cum_repro_mean / constants['scale_factor_R'] # Berechnung der skalierten Reproduktion
+        S_scaled = lambda df : df.S / constants['scale_factor_S'] # Berechnung der skalierten Struktur
         )
 
     # Definition von Anfangswerten der Parameter

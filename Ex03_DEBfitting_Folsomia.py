@@ -44,7 +44,7 @@ def load_data():
     """
 
     data = pd.read_csv('folsomia_temperature_cadmium_growth_tidy.csv', header = 5)
-    #data = data.loc[lambda df : df.T_cels == 20] # mehr Daten dadurch (auch wenn unsinnig)
+    #data = data[data['T_cels']==20]
     data = data.loc[lambda df : df.C_F == 0]
     data = data.assign(S = collembola_length_to_weight(data.length_mm)) 
 
@@ -56,9 +56,13 @@ def plot_data(data):
     Gibt ein `fig, ax`-Tuple zurück.
     """
 
-    fig, ax = plt.subplots(ncols = 1, figsize = (8,6), sharex = True)
+    fig, ax = plt.subplots(ncols = 1, figsize = (5,4), sharex = True)
 
+<<<<<<< HEAD
     sns.lineplot(data, x = 't_day', y = 'S', hue='T_cels', marker = 'o')
+=======
+    sns.lineplot(data, x = 't_day', y = 'S', marker = 'o', hue="T_cels")
+>>>>>>> 1419385fd109215aa2e802531103cbe88bfa846a
     
     ax.set(xlabel = "Zeit (d)", ylabel = "Strukturelle Masse (mugC)")
     
@@ -88,14 +92,17 @@ def define_simulator(f: ModelFit):
         p.spc['Idot_max_rel_emb'] *= zoom_factor_theta**(1/3)
         p.spc['X_emb_int'] *= zoom_factor_theta
         p.spc['S_p'] *= zoom_factor_theta
-        
+        list = []
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            prediction = simulate_DEBBase(p).assign(
-                cum_repro = lambda df : np.trunc(df.R / p.spc['X_emb_int']).shift(EMB_DEV_TIME, fill_value = 0)
-                ).rename({'t' : 't_day'}, axis = 1)
 
-            return prediction
+            for temp in [288.15,293.15]:
+                p.glb['T'] = temp
+                prediction = simulate_DEBBase(p).assign(T_cels = int(temp-273.15)).rename({'t' : 't_day'}, axis = 1)
+                list.append(prediction)
+            #return prediction
+            result = pd.concat(list)
+            return result
         
     return simulator
     
@@ -109,7 +116,7 @@ def define_defaultparams():
     glb = {
         'C_W': 0.0,
         'V_patch': 0.05,
-        'Xdot_in': 1e10, # hoher Wert, damit genug Nahrung da ist
+        'Xdot_in': 100, # hoher Wert, damit genug Nahrung da ist
         'a_int': 6,
         'tspan': (0, 80)
     }
@@ -129,12 +136,16 @@ def define_defaultparams():
         'kD_j': 0.5, 
         'ED50_j': 1.0, 
         'beta_j': 2.0, 
-        'pmoa': 'G', 
-        'kD_h': 0.5, 
+        'pmoa': 'M', 
+        'kD_h': 0.5, ##
         'ED50_h': 2.0, 
         'beta_h': 1.0,
+<<<<<<< HEAD
         #temperatur
         'T_a' : 8000 
+=======
+        'T_A' : 8000 #kelvin
+>>>>>>> 1419385fd109215aa2e802531103cbe88bfa846a
         }
 
     p = Params(glb = glb, spc = spc)
@@ -150,12 +161,11 @@ def define_loss(constants = None):
 
         # Skalierung der Vorhersagen
         prediction = prediction.assign(
-            S_scaled = lambda df : df.S / constants['scale_factor_S'], 
-            #cum_repro_scaled = lambda df : df.cum_repro / constants['scale_factor_R']
+            S_scaled = lambda df : df.S / constants['scale_factor_S']
             )
 
         # Zusammenfassung von Vorhersagen und Daten in einen einzelnen Datensatz
-        eval_df = pd.merge(prediction, data, on = 't_day', how = 'right', suffixes = ['_predicted', '_observed'])
+        eval_df = pd.merge(prediction, data, on = ['t_day','T_cels'], how = 'right', suffixes = ['_predicted', '_observed'])
         
         # Berechnung der Loss-Funktion
         loss_S = logMSE(eval_df.S_scaled_predicted, eval_df.S_scaled_observed)
@@ -174,15 +184,13 @@ def setup_modelfit():
     # Konstanten die während des Fittings genutzt werden
     
     constants = {
-        'scale_factor_S' : np.max(f.data.S),
-        #'scale_factor_R' : np.max(f.data.cum_repro_mean)
+        'scale_factor_S' : np.max(f.data.S)
     }
     
     # Skalierung der Daten
 
     f.data = f.data.assign( 
-        S_scaled = lambda df : df.S / constants['scale_factor_S'], # Berechnung der skalierten Struktur
-        #cum_repro_scaled = lambda df : df.cum_repro_mean / constants['scale_factor_R'] # Berechnung der skalierten Reproduktion
+        S_scaled = lambda df : df.S / constants['scale_factor_S'] # Berechnung der skalierten Struktur
         )
 
     # Definition von Anfangswerten der Parameter
@@ -195,8 +203,14 @@ def setup_modelfit():
     f.intguess = { 
         'Idot_max_rel' : f.defaultparams.spc['Idot_max_rel'],#Einflussreichster Parameter
         'eta_AS_0' : f.defaultparams.spc['eta_AS_0'],#Wachstumsparameter
+<<<<<<< HEAD
         'T_a' : f.defaultparams.spc['T_a'],
         'k_M_0' : f.defaultparams.spc['k_M_0'] 
+=======
+        'k_M_0' : f.defaultparams.spc['k_M_0'],
+        'T_A' : f.defaultparams.spc['T_A']
+
+>>>>>>> 1419385fd109215aa2e802531103cbe88bfa846a
         }
 
     f.simulator = define_simulator(f)
@@ -226,8 +240,7 @@ def fit_model():
 
     fig, ax = plot_data(f.data)
 
-    sns.lineplot(sim_opt, x = 't_day', y = 'S', label = "Modell")
-    #sns.lineplot(sim_opt, x = 't_day', y = 'cum_repro', ax = ax[1])
+    sns.lineplot(sim_opt, x = 't_day', y = 'S', hue='T_cels')
 
     ax.legend()
 
