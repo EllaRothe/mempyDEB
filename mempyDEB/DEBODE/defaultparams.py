@@ -11,13 +11,14 @@ Params = namedtuple("Params", "glb spc")
 defaultparams_DEBBase = Params(
     { # global parameters
         # Simulation parameters
-        'tspan' : (0,230), # simulated time span
+        'tspan' : (0,80), # simulated time span
         'a_int' : 2, # initial age (including embryonic development); the column `t` in the simulation output starts to count time at this age
 
         # Environmental parameters
         'V_patch':  0.05, # simulated volume (L)
         'Xdot_in': 375, # food input rate (µg C / d)
         'C_W' : 0. # chemical exposure concentration
+        'T' : 288.15 #Kelvin, 15°C aber wäre logischer wenn irgendwie übergeben aus Tabelle?
     },
     { # species-specific parameters
         'X_emb_int': 0.675, # mass of an egg (µgC)
@@ -41,7 +42,10 @@ defaultparams_DEBBase = Params(
         # GUTS-SD parameters
         'kD_h' : .5, #  dominant rate constant for lethal effects (d^-1)
         'ED50_h' : 2., # median effective scaled damage for lethal effects (units match chemical exposure)
-        'beta_h' : 1. # slope for lethal effects (-)
+        'beta_h' : 1., # slope for lethal effects (-)
+
+        #temperatur
+        'T_a' : 8000
     }
 )
 

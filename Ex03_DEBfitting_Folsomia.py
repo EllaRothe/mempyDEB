@@ -58,7 +58,7 @@ def plot_data(data):
 
     fig, ax = plt.subplots(ncols = 1, figsize = (8,6), sharex = True)
 
-    sns.lineplot(data, x = 't_day', y = 'S', marker = 'o', color = 'black')
+    sns.lineplot(data, x = 't_day', y = 'S', hue='T_cels', marker = 'o')
     
     ax.set(xlabel = "Zeit (d)", ylabel = "Strukturelle Masse (mugC)")
     
@@ -132,7 +132,9 @@ def define_defaultparams():
         'pmoa': 'G', 
         'kD_h': 0.5, 
         'ED50_h': 2.0, 
-        'beta_h': 1.0
+        'beta_h': 1.0,
+        #temperatur
+        'T_a' : 8000 
         }
 
     p = Params(glb = glb, spc = spc)
@@ -192,7 +194,9 @@ def setup_modelfit():
     
     f.intguess = { 
         'Idot_max_rel' : f.defaultparams.spc['Idot_max_rel'],#Einflussreichster Parameter
-        'eta_AS_0' : f.defaultparams.spc['eta_AS_0']#Wachstumsparameter
+        'eta_AS_0' : f.defaultparams.spc['eta_AS_0'],#Wachstumsparameter
+        'T_a' : f.defaultparams.spc['T_a'],
+        'k_M_0' : f.defaultparams.spc['k_M_0'] 
         }
 
     f.simulator = define_simulator(f)
