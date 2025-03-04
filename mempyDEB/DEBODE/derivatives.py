@@ -59,8 +59,13 @@ def DEBBase(t, y, glb, spc, LS_max):
     y_A = (int(spc['pmoa'] == 'A') * LL2(D_j, (spc['ED50_j'], spc['beta_j']))) + (int(spc['pmoa'] != 'A') * 1)
     y_R = (int(spc['pmoa'] == 'R') * LL2(D_j, (spc['ED50_j'], spc['beta_j']))) + (int(spc['pmoa'] != 'R') * 1)
 
+    T_1 = 293.15 #Referenztemperatur 20°C = 293.15°K
+    arrhenius = np.exp(spc['T_A']/T_1 - spc['T_A']/glb['T'])
+    #print(arrhenius,T_1,glb['T'])
+    k_M = spc['k_M_0'] * y_M * arrhenius
+
     eta_AS = spc['eta_AS_0'] * y_G
-    k_M = spc['k_M_0'] * y_M
+    #k_M = spc['k_M_0'] * y_M
     eta_IA = spc['eta_IA_0'] * y_A
     eta_AR = spc['eta_AR_0'] * y_R
 
