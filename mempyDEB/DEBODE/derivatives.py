@@ -31,7 +31,8 @@ def DEBBase(t, y, glb, spc, LS_max):
     Derivatives of the "DEBBase" model. <br>
     DEBBase is a formulation of DEBkiss with maturity, where structure is expressed as mass (instead of volume). <br>
     The TKTD part assumes log-logistic relationships between scaled damage and the relative response. <br>
-    There is no explicit representation of "stress". Instead, we compute the relative response directly by applying the appropriate form of the dose-response function.
+    There is no explicit representation of "stress". Instead, we compute the relative response <br>
+    directly by applying the appropriate form of the dose-response function.
     This is the same model formulation as used in the Julia package DEBBase.jl.
 
     args:

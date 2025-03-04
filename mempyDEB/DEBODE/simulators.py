@@ -46,7 +46,7 @@ def simulate_DEBBase(params):
 
 def constant_exposures(simulator, params, C_Wvec):
     p = copy.deepcopy(params)
-    output = pd.DataFrame() # colelct all output in this data frame
+    output = pd.DataFrame() # collect all output in this data frame
 
     for C_W in C_Wvec:
         p.glb["C_W"] = C_W
