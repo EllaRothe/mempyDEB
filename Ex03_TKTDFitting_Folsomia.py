@@ -10,7 +10,7 @@ from ModelFitting import *
 from mempyDEB.DEBODE.simulators import *
 from mempyDEB.DEBODE.defaultparams import *
 
-from Ex03_DEBFitting_Folsomia import collembola_length_to_weight
+from Ex03_DEBfitting_Folsomia import collembola_length_to_weight
 
 # Konstanten
 
@@ -71,10 +71,13 @@ def plot_data(data):
 def plot_sim(ax, sim):
 
     for (i,C_W) in enumerate(sim.C_W.unique()):
-        
-        df = sim.loc[lambda df : df.C_W == C_W]
 
-        sns.lineplot(df, x = 't_day', y = 'S', ax = ax[0,i])
+        for (j, T_cels) in enumerate(sim.T_cels.unique()):
+            
+            df = sim.loc[(sim.C_W == C_W) & (sim.T_cels == T_cels)]
+
+            sns.lineplot(df, x='t_day', y='S', ax=ax[j, i], label=f"{T_cels}°C")
+
 
     return ax
 
@@ -91,21 +94,35 @@ def define_simulator(f: ModelFit):
 
         p = deepcopy(f.defaultparams)
         p.spc.update(theta) # macht das gleiche wie p.spc['Idot_max_rel'] = theta['Idot_max_rel']
+        list = []
 
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            prediction = constant_exposures(
-                simulate_DEBBase, p, EXPOSURES).rename({'t' : 't_day'}, axis = 1)
+
+            for temp in [288.15,293.15, (25+273.15)]:
+                p.glb['T'] = temp
+                prediction = constant_exposures(
+                    simulate_DEBBase, p, EXPOSURES).rename({'t' : 't_day'}, axis = 1)
             
-            # Berechnung der relative response
-            prediction = pd.merge(
-                prediction, 
-                prediction.loc[prediction['C_W']==0], on = ['t_day'], suffixes = ['', '_ref']).groupby(['t_day', 'C_W']).apply(
-                    lambda gb : gb.assign(
-                        y_S = lambda gb : gb.S / gb.S_ref,
-                    ))
+                prediction['T_cels'] = temp - 273.15 
+
+
+                # Berechnung der relative response
+                prediction = pd.merge(
+                    prediction, 
+                    prediction.loc[prediction['C_W']==0], on = ['t_day'], suffixes = ['', '_ref']).groupby(['t_day', 'C_W']).apply(
+                        lambda gb : gb.assign(
+                            y_S = lambda gb : gb.S / gb.S_ref,
+                        ))
+                
+                print(f"prediction for {temp}: {prediction}")
+
+                list.append(prediction)
+
+            result = pd.concat(list)
+            print(f"result: {result}")
             
-            return prediction.drop(['C_W', 't_day'], axis = 1).reset_index()
+            return result.drop(['C_W', 't_day'], axis = 1).reset_index()
          
     return simulator
 
@@ -115,40 +132,42 @@ def define_simulator(f: ModelFit):
 #     Definition der Simulator-Funktion für DEB-Kalibrierung.
 #     """
 
-    # def simulator(theta: dict) -> tuple:  # theta = rand(priors)
+#     def simulator(theta: dict) -> tuple:  # theta = rand(priors)
 
-    #     p = deepcopy(f.defaultparams)
-    #     p.spc.update(theta)  
+#         p = deepcopy(f.defaultparams)
+#         p.spc.update(theta)  
 
-    #     simulations = []  
+#         simulations = []  
 
-    #     with warnings.catch_warnings():
-    #         warnings.simplefilter('ignore')
+#         with warnings.catch_warnings():
+#             warnings.simplefilter('ignore')
 
-    #         for temp in [288.15, 293.15, 298.15]: 
-    #             p.glb['T'] = temp  
+#             for temp in [288.15, 293.15, 298.15]: 
+#                 p.glb['T'] = temp  
 
-    #             prediction = constant_exposures(
-    #                 simulate_DEBBase, p, EXPOSURES).rename({'t': 't_day'}, axis=1)
+#                 prediction = constant_exposures(
+#                     simulate_DEBBase, p, EXPOSURES).rename({'t': 't_day'}, axis=1)
 
-    #             prediction['T_cels'] = temp - 273.15 
+#                 prediction['T_cels'] = temp - 273.15 
 
-    #             # Berechnung der relativen Response
-    #             prediction = pd.merge(
-    #                 prediction,
-    #                 prediction.loc[prediction['C_W'] == 0],
-    #                 on=['t_day'],
-    #                 suffixes=['', '_ref']
-    #             ).groupby(['t_day', 'C_W']).apply(
-    #                 lambda gb: gb.assign(y_S=gb.S / gb.S_ref)
-    #             )
+#                 # Berechnung der relativen Response
+#                 prediction = pd.merge(
+#                     prediction,
+#                     prediction.loc[prediction['C_W'] == 0],
+#                     on=['t_day'],
+#                     suffixes=['', '_ref']
+#                 ).groupby(['t_day', 'C_W']).apply(
+#                     lambda gb: gb.assign(y_S=gb.S / gb.S_ref)
+#                 )
 
-    #             simulations.append(prediction)  # Simulation speichern
+#                 simulations.append(prediction)  # Simulation speichern
 
-    #     # Alle Simulationen zusammenfügen
-    #     final_prediction = pd.concat(simulations).reset_index()
+#             # Alle Simulationen zusammenfügen
+#             final_prediction = pd.concat(simulations).reset_index()
 
-    #     return final_prediction.drop(columns=['C_W', 't_day'])
+#         return final_prediction.drop(columns=['C_W', 't_day'])
+
+#     return simulator
 
 
 
