@@ -193,7 +193,6 @@ def setup_modelfit():
     
     f.intguess = { 
         'Idot_max_rel' : f.defaultparams.spc['Idot_max_rel'],#Einflussreichster Parameter
-        #'eta_AS_0' : f.defaultparams.spc['eta_AS_0'],#Wachstumsparameter
         'k_M_0' : f.defaultparams.spc['k_M_0'],
         'T_A' : f.defaultparams.spc['T_A']
 
