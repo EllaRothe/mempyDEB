@@ -10,7 +10,7 @@ from ModelFitting import *
 from mempyDEB.DEBODE.simulators import *
 from mempyDEB.DEBODE.defaultparams import *
 
-from Ex03_DEBfitting_Folsomia import collembola_length_to_weight
+from Ex03_DEBFitting_Folsomia import collembola_length_to_weight
 
 # Konstanten
 
@@ -32,7 +32,7 @@ def load_data():
     """
     
     data = pd.read_csv('folsomia_temperature_cadmium_growth_tidy.csv', header = 5)
-    data = data[data['T_cels']==15]
+    #data = data[data['T_cels']==15]
     data = data.assign(S = collembola_length_to_weight(data.length_mm))
     data.rename(columns = {'C_F':'C_W'}, inplace = True)
 
@@ -51,14 +51,14 @@ def plot_data(data):
         ax[0,i].set(title = f'{C_W} mg/kg')
         obs = data.loc[lambda df : df.C_W==C_W]
         
-        sns.lineplot(obs, x = 't_day', y = 'S', ax = ax[0,i], marker = 'o', color = 'black')
-        #sns.lineplot(obs, x = 't_day', y = 'y_R', ax = ax[1,i], marker = 'o', color = 'black', label = "Daten")
+        sns.lineplot(obs=data[data['T_cels'==15]], x = 't_day', y = 'S', ax = ax[0,i], marker = 'o', color = 'black')
+        sns.lineplot(obs=data[data['T_cels'==20]], x = 't_day', y = 'S', ax = ax[1,i], marker = 'o', color = 'black', label = "Daten")
 
     ax[0,0].legend()
     [a.legend().remove() for a in np.ravel(ax)[1:]]
     #ax[0,0].set_ylim(0, 2.)
-    ax[0,0].set(ylabel = "Struktur (mug)")
-    ax[1,0].set(ylabel = "Reproduktion (mug)")
+    ax[0,0].set(ylabel = "Struktur bei 15°C (mug)")
+    ax[1,0].set(ylabel = "Struktur bei 20°C (mug)")
 
     sns.despine()
     plt.tight_layout()
@@ -92,16 +92,7 @@ def define_simulator(f: ModelFit):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             prediction = constant_exposures(
-                simulate_DEBBase, p, EXPOSURES
-                ).assign(
-                    cum_repro = lambda df : np.trunc(df.R / p.spc['X_emb_int']).shift(EMB_DEV_TIME, fill_value = 0)
-                ).rename({'t' : 't_day'}, axis = 1)
-            '''
-            trunc: rundet ab, damit keine Fließkommezahl rauskommt
-            R/X_emb_int: wie viele Eier produziert werden
-            shift: zeitlich verschieben (Embrionalentwicklungszeit)
-            rename: damit df merge klappen würde
-            '''
+                simulate_DEBBase, p, EXPOSURES).rename({'t' : 't_day'}, axis = 1)
             
             # Berechnung der relative response
             prediction = pd.merge(

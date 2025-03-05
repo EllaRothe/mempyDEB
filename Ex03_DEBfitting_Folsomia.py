@@ -58,7 +58,7 @@ def plot_data(data):
 
     fig, ax = plt.subplots(ncols = 1, figsize = (5,4), sharex = True)
 
-    sns.lineplot(data, x = 't_day', y = 'S', marker = 'o', hue="T_cels")
+    sns.lineplot(data, x = 't_day', y = 'S', marker = 'o', hue="T_cels", palette = ['forestgreen','mediumblue'])
     
     ax.set(xlabel = "Zeit (d)", ylabel = "Strukturelle Masse (mugC)")
     
@@ -160,7 +160,6 @@ def define_loss(constants = None):
         
         # Berechnung der Loss-Funktion
         loss_S = logMSE(eval_df.S_scaled_predicted, eval_df.S_scaled_observed)
-        #loss_R = logMSE(eval_df.cum_repro_scaled_predicted, eval_df.cum_repro_scaled_observed)
         
         return loss_S # nur die komplette Loss muss zurückgegeben werden 
     
@@ -226,8 +225,10 @@ def fit_model():
 
     fig, ax = plot_data(f.data)
 
-    sns.lineplot(sim_opt, x = 't_day', y = 'S', hue='T_cels')
-
-    ax.legend()
+    sns.lineplot(sim_opt, x = 't_day', y = 'S', 
+                 hue='T_cels', palette = ['forestgreen','mediumblue', 'darkviolet']
+                 )
+    ax.set_title("Einfluss der Temperatur auf Struktur von Folsomia")
+    ax.legend(title='Temperatur [°C]')
 
     return f

@@ -61,7 +61,6 @@ def DEBBase(t, y, glb, spc, LS_max):
 
     T_1 = 293.15 #Referenztemperatur 20°C = 293.15°K
     arrhenius = np.exp(spc['T_A']/T_1 - spc['T_A']/glb['T'])
-    #print(arrhenius,T_1,glb['T'])
     k_M = spc['k_M_0'] * y_M * arrhenius
 
     eta_AS = spc['eta_AS_0'] * y_G
