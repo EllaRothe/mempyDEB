@@ -58,11 +58,7 @@ def plot_data(data):
 
     fig, ax = plt.subplots(ncols = 1, figsize = (5,4), sharex = True)
 
-<<<<<<< HEAD
-    sns.lineplot(data, x = 't_day', y = 'S', hue='T_cels', marker = 'o')
-=======
     sns.lineplot(data, x = 't_day', y = 'S', marker = 'o', hue="T_cels")
->>>>>>> 1419385fd109215aa2e802531103cbe88bfa846a
     
     ax.set(xlabel = "Zeit (d)", ylabel = "Strukturelle Masse (mugC)")
     
@@ -96,7 +92,7 @@ def define_simulator(f: ModelFit):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
 
-            for temp in [288.15,293.15]:
+            for temp in [288.15,293.15, (25+273.15)]:
                 p.glb['T'] = temp
                 prediction = simulate_DEBBase(p).assign(T_cels = int(temp-273.15)).rename({'t' : 't_day'}, axis = 1)
                 list.append(prediction)
@@ -140,12 +136,7 @@ def define_defaultparams():
         'kD_h': 0.5, ##
         'ED50_h': 2.0, 
         'beta_h': 1.0,
-<<<<<<< HEAD
-        #temperatur
-        'T_a' : 8000 
-=======
         'T_A' : 8000 #kelvin
->>>>>>> 1419385fd109215aa2e802531103cbe88bfa846a
         }
 
     p = Params(glb = glb, spc = spc)
@@ -203,14 +194,9 @@ def setup_modelfit():
     f.intguess = { 
         'Idot_max_rel' : f.defaultparams.spc['Idot_max_rel'],#Einflussreichster Parameter
         'eta_AS_0' : f.defaultparams.spc['eta_AS_0'],#Wachstumsparameter
-<<<<<<< HEAD
-        'T_a' : f.defaultparams.spc['T_a'],
-        'k_M_0' : f.defaultparams.spc['k_M_0'] 
-=======
         'k_M_0' : f.defaultparams.spc['k_M_0'],
         'T_A' : f.defaultparams.spc['T_A']
 
->>>>>>> 1419385fd109215aa2e802531103cbe88bfa846a
         }
 
     f.simulator = define_simulator(f)
