@@ -44,7 +44,7 @@ def load_data():
     """
 
     data = pd.read_csv('folsomia_temperature_cadmium_growth_tidy25.csv', header = 5)
-    #data = pd.read_csv('folsomia_temperature_cadmium_growth_tidy.csv', header = 5)
+    # data = pd.read_csv('folsomia_temperature_cadmium_growth_tidy.csv', header = 5)
     #data = data[data['T_cels']==20]
     data = data.loc[lambda df : df.C_F == 0]
     data = data.assign(S = collembola_length_to_weight(data.length_mm)) 
@@ -59,7 +59,7 @@ def plot_data(data):
 
     fig, ax = plt.subplots(ncols = 1, figsize = (5,4), sharex = True)
 
-    sns.lineplot(data, x = 't_day', y = 'S', marker = 'o', hue="T_cels", palette = ['forestgreen','mediumblue'])
+    sns.lineplot(data, x = 't_day', y = 'S', marker = 'o', hue="T_cels", palette = ['forestgreen','mediumblue', 'darkviolet'])
     
     ax.set(xlabel = "Zeit (d)", ylabel = "Strukturelle Masse (mugC)")
     
@@ -227,7 +227,7 @@ def fit_model():
     fig, ax = plot_data(f.data)
 
     sns.lineplot(sim_opt, x = 't_day', y = 'S',
-                 hue='T_cels', palette = ['forestgreen', 'mediumblue', 'darkviolet'])
+                 hue='T_cels', palette = ['forestgreen', 'mediumblue', 'darkviolet', 'maroon'])
 
     ax.set_title("Einfluss der Temperatur auf Struktur von Folsomia")
     ax.legend(title='Temperatur [°C]')
