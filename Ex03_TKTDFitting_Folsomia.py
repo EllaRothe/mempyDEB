@@ -10,7 +10,7 @@ from ModelFitting import *
 from mempyDEB.DEBODE.simulators import *
 from mempyDEB.DEBODE.defaultparams import *
 
-from Ex03_DEBFitting_Folsomia import collembola_length_to_weight
+from Ex03_DEBfitting_Folsomia import collembola_length_to_weight
 
 # Konstanten
 
