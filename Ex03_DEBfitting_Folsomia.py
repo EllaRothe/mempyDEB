@@ -43,7 +43,8 @@ def load_data():
     Einlesen der Kontrolldaten für Folsomia.
     """
 
-    data = pd.read_csv('folsomia_temperature_cadmium_growth_tidy.csv', header = 5)
+    data = pd.read_csv('folsomia_temperature_cadmium_growth_tidy25.csv', header = 5)
+    #data = pd.read_csv('folsomia_temperature_cadmium_growth_tidy.csv', header = 5)
     #data = data[data['T_cels']==20]
     data = data.loc[lambda df : df.C_F == 0]
     data = data.assign(S = collembola_length_to_weight(data.length_mm)) 
@@ -92,7 +93,7 @@ def define_simulator(f: ModelFit):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
 
-            for temp in [288.15,293.15]:
+            for temp in [288.15,293.15, (25+273.15)]:
                 p.glb['T'] = temp
                 prediction = simulate_DEBBase(p).assign(T_cels = int(temp-273.15)).rename({'t' : 't_day'}, axis = 1)
                 list.append(prediction)
@@ -192,7 +193,7 @@ def setup_modelfit():
     
     f.intguess = { 
         'Idot_max_rel' : f.defaultparams.spc['Idot_max_rel'],#Einflussreichster Parameter
-        'eta_AS_0' : f.defaultparams.spc['eta_AS_0'],#Wachstumsparameter
+        #'eta_AS_0' : f.defaultparams.spc['eta_AS_0'],#Wachstumsparameter
         'k_M_0' : f.defaultparams.spc['k_M_0'],
         'T_A' : f.defaultparams.spc['T_A']
 
@@ -225,10 +226,10 @@ def fit_model():
 
     fig, ax = plot_data(f.data)
 
-    sns.lineplot(sim_opt, x = 't_day', y = 'S', 
-                 hue='T_cels', palette = ['forestgreen','mediumblue', 'darkviolet']
-                 )
+    sns.lineplot(sim_opt, x = 't_day', y = 'S',
+                 hue='T_cels', palette = ['forestgreen', 'mediumblue', 'darkviolet'])
+
     ax.set_title("Einfluss der Temperatur auf Struktur von Folsomia")
     ax.legend(title='Temperatur [°C]')
-
+    
     return f
