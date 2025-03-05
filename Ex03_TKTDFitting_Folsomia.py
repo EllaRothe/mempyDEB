@@ -31,7 +31,7 @@ def load_data():
     Einlesen der Kontrolldaten für Folsomia
     """
     
-    data = pd.read_csv('folsomia_temperature_cadmium_growth_tidy.csv', header = 5)
+    data = pd.read_csv('folsomia_temperature_cadmium_growth_tidy25.csv', header = 5)
     #data = data[data['T_cels']==15]
     data = data.assign(S = collembola_length_to_weight(data.length_mm))
     data.rename(columns = {'C_F':'C_W'}, inplace = True)
@@ -44,21 +44,24 @@ def plot_data(data):
     Gibt ein `fig, ax`-Tuple zurück.
     """
 
-    fig, ax = plt.subplots(ncols = 5, nrows = 2, figsize = (20,8), sharey = True)
+    fig, ax = plt.subplots(ncols = 5, nrows = 3, figsize = (20,8), sharey = True)
 
     for (i,C_W) in enumerate(data.C_W.unique()):
 
         ax[0,i].set(title = f'{C_W} mg/kg')
         obs = data.loc[lambda df : df.C_W==C_W]
-        
-        sns.lineplot(obs=data[data['T_cels'==15]], x = 't_day', y = 'S', ax = ax[0,i], marker = 'o', color = 'black')
-        sns.lineplot(obs=data[data['T_cels'==20]], x = 't_day', y = 'S', ax = ax[1,i], marker = 'o', color = 'black', label = "Daten")
+
+        sns.lineplot(obs.loc[obs['T_cels']==15], x = 't_day', y = 'S', ax = ax[0,i], marker = 'o', color = 'black')
+        sns.lineplot(obs.loc[obs['T_cels']==20], x = 't_day', y = 'S', ax = ax[1,i], marker = 'o', color = 'black')
+        sns.lineplot(obs.loc[obs['T_cels']==25], x = 't_day', y = 'S', ax = ax[2,i], marker = 'o', color = 'black', label = "Daten")
+
 
     ax[0,0].legend()
     [a.legend().remove() for a in np.ravel(ax)[1:]]
-    #ax[0,0].set_ylim(0, 2.)
+    ax[0,0].set_ylim(0, 25)
     ax[0,0].set(ylabel = "Struktur bei 15°C (mug)")
     ax[1,0].set(ylabel = "Struktur bei 20°C (mug)")
+    ax[2,0].set(ylabel = "Struktur bei 25°C (mug)")
 
     sns.despine()
     plt.tight_layout()
@@ -105,6 +108,50 @@ def define_simulator(f: ModelFit):
             return prediction.drop(['C_W', 't_day'], axis = 1).reset_index()
          
     return simulator
+
+# def define_simulator(f: ModelFit):
+
+#     """
+#     Definition der Simulator-Funktion für DEB-Kalibrierung.
+#     """
+
+    # def simulator(theta: dict) -> tuple:  # theta = rand(priors)
+
+    #     p = deepcopy(f.defaultparams)
+    #     p.spc.update(theta)  
+
+    #     simulations = []  
+
+    #     with warnings.catch_warnings():
+    #         warnings.simplefilter('ignore')
+
+    #         for temp in [288.15, 293.15, 298.15]: 
+    #             p.glb['T'] = temp  
+
+    #             prediction = constant_exposures(
+    #                 simulate_DEBBase, p, EXPOSURES).rename({'t': 't_day'}, axis=1)
+
+    #             prediction['T_cels'] = temp - 273.15 
+
+    #             # Berechnung der relativen Response
+    #             prediction = pd.merge(
+    #                 prediction,
+    #                 prediction.loc[prediction['C_W'] == 0],
+    #                 on=['t_day'],
+    #                 suffixes=['', '_ref']
+    #             ).groupby(['t_day', 'C_W']).apply(
+    #                 lambda gb: gb.assign(y_S=gb.S / gb.S_ref)
+    #             )
+
+    #             simulations.append(prediction)  # Simulation speichern
+
+    #     # Alle Simulationen zusammenfügen
+    #     final_prediction = pd.concat(simulations).reset_index()
+
+    #     return final_prediction.drop(columns=['C_W', 't_day'])
+
+
+
     
 def define_defaultparams():
     """
@@ -118,7 +165,8 @@ def define_defaultparams():
         'V_patch': 0.05,
         'Xdot_in': 30596.296296296296,
         'a_int': 6,
-        'tspan': (0, 80)
+        'tspan': (0, 80),
+        'T' : 8000
     }
 
     spc = {
@@ -139,14 +187,16 @@ def define_defaultparams():
         'pmoa': 'G', # PMoA wird in setup_modelfit überschrieben!
         'kD_h': 0.5, 
         'ED50_h': 2.0, 
-        'beta_h': 1.0
+        'beta_h': 1.0,
+        'T_a' : 8000
         }
     
     # geschätzte DEB-Parameter aus der vorherigen Übung
 
-    fitted_params =  {
-        'Idot_max_rel': np.float64(4.5482062001716725),
-        'eta_AS_0': np.float64(0.4064455981275471)
+    fitted_params =  { #parameter mit 25, aber T_a nicht sehr sinnvoll?
+        'Idot_max_rel': np.float64(1.7293073035956965),
+        'k_M_0': np.float64(0.1891084716041807), 
+        'T_A': np.float64(-691.7697988262858)
         }
     
     spc.update(fitted_params)
@@ -205,9 +255,9 @@ def setup_modelfit(pmoa = 'G'):
     # was nicht in intugess ist, wird auf den wert in defaultparams fixiert 
     
     f.intguess = { 
-        'kD_j' : 1.,
-        'ED50_j' : np.median(EXPOSURES),
-        'beta_j' : 2.
+        'Idot_max_rel': np.float64(1.7293073035956965),
+        'k_M_0': np.float64(0.1891084716041807), 
+        'T_A': np.float64(-691.7697988262858)
         }
 
     f.simulator = define_simulator(f)
