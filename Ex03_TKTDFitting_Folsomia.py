@@ -87,6 +87,14 @@ def define_simulator(f: ModelFit):
 
         p = deepcopy(f.defaultparams)
         p.spc.update(theta) # macht das gleiche wie p.spc['Idot_max_rel'] = theta['Idot_max_rel']
+        S_max_theta = calc_S_max(p.spc) # implizierte maximale Struktur auf basis von theta
+        zoom_factor_theta = S_max_theta / S_MAX_REFERENCE # zoom factor auf basis von theta
+        
+        # diese Parameter skalieren mit der neuen maximalen Größe
+
+        p.spc['Idot_max_rel_emb'] *= zoom_factor_theta**(1/3)
+        p.spc['X_emb_int'] *= zoom_factor_theta
+        p.spc['S_p'] *= zoom_factor_theta
         list = []
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
@@ -121,7 +129,7 @@ def define_defaultparams():
     glb = {
         'C_W': 0.,
         'V_patch': 0.05,
-        'Xdot_in': 30000,
+        'Xdot_in': 100,
         'a_int': 6,
         'tspan': (0, 80),
         'T' : 8000
@@ -129,14 +137,11 @@ def define_defaultparams():
 
     spc = {
         'X_emb_int': 19.42, 
-        #'X_emb_int': 0.94, 
         'eta_IA_0': 0.3333333333333333, 
-        'eta_AS_0': 0.529, 
+        'eta_AS_0': 0.9, 
         'eta_AR_0': 0.95, 
-        # 'Idot_max_rel': np.float64(1.7293073035956965), 
-        # 'Idot_max_rel_emb': np.float64(1.7293073035956965), 
-        'Idot_max_rel': 12 ,
-        'Idot_max_rel_emb': 12 ,
+        'Idot_max_rel': 12.256744759847304 ,
+        'Idot_max_rel_emb': 12.256744759847304 ,
         'K_X': 500.0, 
         'kappa': 0.9, 
         'eta_SA': 0.9, 
@@ -217,8 +222,8 @@ def setup_modelfit(pmoa = 'G'):
     
     f.intguess = { 
         'kD_j' : 1.,
-        'ED50_j' : np.median(EXPOSURES),
-       # 'ED50_j' : 1000,
+        #'ED50_j' : np.median(EXPOSURES),
+        'ED50_j' : 2500,
         'beta_j' : 2.
         }
 

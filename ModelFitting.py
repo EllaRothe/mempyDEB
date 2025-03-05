@@ -156,7 +156,7 @@ class ModelFit:
         Generate retrodictions based on `n` posterior samples.
         """
 
-        self.retrodictions = []
+        self.retrodictions = [] #lineplot über liste 
 
         for i in range(n): 
             sim = self.simulator(self.posterior_sample())
@@ -206,7 +206,7 @@ class ModelFit:
 
     def extract_point_estimate(self):
         """
-        Extract point estimate from pyabc results.
+        Extract point estimate from pyabc results. #plotten!
         """
 
         return dict(zip(
