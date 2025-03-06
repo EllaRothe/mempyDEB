@@ -64,17 +64,35 @@ def plot_data(data):
 
     return fig,ax
 
-def plot_sim(ax, sim):
+def plot_sim(ax, sim, size = 1, linestyle='-', label = None):
 
     for (temp,T_cels) in enumerate(sim.T_cels.unique()):
 
         for (i,C_W) in enumerate(sim.C_W.unique()):
             df = sim.loc[(sim.C_W == C_W) & (sim.T_cels == T_cels)]
-            sns.lineplot(df, x = 't_day', y = 'S', ax = ax[temp,i])
+            sns.lineplot(df, x = 't_day', y = 'S', ax = ax[temp,i], 
+                         linewidth=size, linestyle=linestyle, label= label)
+    ax[0,0].legend()
+    [a.legend().remove() for a in np.ravel(ax)[1:]]
 
     return ax
 
 #### Simulator-Funktion
+
+def bayesian(sol):
+    sol_list = []
+    for i in range(len(sol)):
+        for (temp,T_cels) in enumerate(sol[i]['T_cels'].unique()):
+                for (j,C_W) in enumerate(sol[i]['C_W'].unique() ):
+                    sol_neu = sol[i][(sol[i]['T_cels']==T_cels) & (sol[i]['C_W']==C_W)]
+                    sol_list.append([temp, j, sol_neu])
+    return sol_list
+
+def plot_bayesian(ax, sol_list):
+    for i in range(1000): #100 samples*10 plots, könnte auch dynamisch angepasst werden
+        temp, j, sol_neu = sol_list[i]
+        sns.lineplot(data = sol_neu,x='t_day',y='S', color='grey', alpha=0.2, ax = ax[temp,j])
+    return ax
 
 
 def define_simulator(f: ModelFit):
@@ -222,8 +240,8 @@ def setup_modelfit(pmoa = 'G'):
     
     f.intguess = { 
         'kD_j' : 1.,
-        #'ED50_j' : np.median(EXPOSURES),
-        'ED50_j' : 2500,
+        'ED50_j' : np.median(EXPOSURES),
+        # 'ED50_j' : 2500,
         'beta_j' : 2.
         }
 
