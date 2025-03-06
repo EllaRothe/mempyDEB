@@ -223,7 +223,7 @@ def setup_modelfit(pmoa = 'G'):
     f.intguess = { 
         'kD_j' : 1.,
         #'ED50_j' : np.median(EXPOSURES),
-        'ED50_j' : 2500,
+        'ED50_j' : 1000,
         'beta_j' : 2.
         }
 
